@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Persistence;
 
 namespace Application.Services;
-
+//Реализация интерфейса для сервиса контактов
 public class ContactsService : IContactService
 {
     private readonly DataContext _context;
@@ -16,14 +16,24 @@ public class ContactsService : IContactService
     }
 
 
-    public async Task<List<Contact>> GetAllContacts()
+    public async Task<PaginatedList<Contact>> GetAllContacts(int pageIndex, int pageSize)
     {
-        return await _context.Contacts.ToListAsync();
+        var contacts = await _context.Contacts.OrderBy(c => c.Id)
+            .Skip((pageIndex - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+        var count = await _context.Contacts.CountAsync();
+        var totalPages = (int)Math.Ceiling(count / (double)pageSize);
+        return new PaginatedList<Contact>(contacts, pageIndex,totalPages);
     }
 
     public async Task<Contact> GetContact(int id)
     {
         var contact = await _context.Contacts.FirstOrDefaultAsync(c => c.Id == id);
+        if (contact == null)
+        {
+            return null;
+        }
         return contact;
     }
 
