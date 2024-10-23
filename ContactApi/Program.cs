@@ -1,4 +1,3 @@
-
 using Application.Services;
 using Application.Services.Interface;
 using Microsoft.EntityFrameworkCore;
@@ -10,15 +9,14 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-        
+
 builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<DataContext>(opt =>
 {
     opt.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection"));
 });
+//Внедрение зависимостей для работы сервиса контактов
 builder.Services.AddScoped<IContactService, ContactsService>();
-// builder.Services.AddServices(builder.Configuration);
-// builder.Services.AddIdentityExtensions(builder.Configuration);
 
 
 // builder.Host 
@@ -31,6 +29,7 @@ using (var scope = app.Services.CreateScope())
     {
         var context = services.GetRequiredService<DataContext>();
         context.Database.Migrate();
+        await Seed.SeedData(context);
     }
     catch (Exception e)
     {
